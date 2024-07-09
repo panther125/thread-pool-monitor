@@ -29,6 +29,10 @@ public enum rejectHandlerPolicyEnum {
         return rejectPolicy;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     rejectHandlerPolicyEnum(Integer type, RejectedExecutionHandler rejectPolicy, String description) {
         this.type = type;
         this.rejectPolicy = rejectPolicy;
@@ -38,6 +42,14 @@ public enum rejectHandlerPolicyEnum {
     public static rejectHandlerPolicyEnum getRejectPolicyByType(Integer type) {
         for (rejectHandlerPolicyEnum policy : values()) {
             if (policy.getType().equals(type))
+                return policy;
+        }
+        return null;
+    }
+
+    public static rejectHandlerPolicyEnum getRejectPolicyByPolicy(RejectedExecutionHandler type) {
+        for (rejectHandlerPolicyEnum policy : values()) {
+            if (type.getClass() == policy.getRejectPolicy().getClass())
                 return policy;
         }
         return null;

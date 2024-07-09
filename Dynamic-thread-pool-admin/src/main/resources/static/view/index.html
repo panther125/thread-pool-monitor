@@ -10,6 +10,7 @@
             padding: 20px;
             background-color: #f7f7f7;
         }
+
         .container {
             max-width: 100%;
             margin: auto;
@@ -17,28 +18,35 @@
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
+
         table, th, td {
             border: 1px solid #ddd;
         }
+
         th, td {
             padding: 10px;
             text-align: left;
         }
+
         th {
             background-color: #f2f2f2;
         }
+
         tr:nth-child(even) {
             background-color: #f9f9f9;
         }
+
         .loader {
             display: none;
             text-align: center;
         }
+
         .modal {
             display: none;
             position: fixed;
@@ -48,8 +56,9 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0,0,0,0.5); /* 更深的背景遮罩 */
-            padding-top: 100px;
+            background-color: rgba(0, 0, 0, 0.5); /* 更深的背景遮罩 */
+            padding-top: 40px;
+            padding-bottom: 40px;
         }
 
         .modal-content {
@@ -59,7 +68,7 @@
             border: 1px solid #888;
             width: 80%;
             max-width: 500px;
-            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2); /* 添加阴影效果 */
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); /* 添加阴影效果 */
             border-radius: 10px; /* 圆角边框 */
         }
 
@@ -133,8 +142,10 @@
             <th>线程池名称</th>
             <th>核心线程池数</th>
             <th>最大线程数</th>
+            <th>最大线程活跃时间</th>
             <th>当前活跃线程数</th>
             <th>当前池中线程数</th>
+            <th>当前拒绝策略</th>
             <th>队列类型</th>
             <th>当前队列任务数</th>
             <th>队列剩余容量数</th>
@@ -160,13 +171,22 @@
             <input type="number" id="corePoolSize" name="corePoolSize"><br>
             <label for="maximumPoolSize">最大线程数:</label><br>
             <input type="number" id="maximumPoolSize" name="maximumPoolSize"><br>
+            <label for="keepLiveTime">最大线程活跃时间:</label><br>
+            <input placeholder="默认 60s" type="number" id="keepLiveTime" name="keepLiveTime"><br>
+            <label for="abortPolicy">拒绝策略:</label><br>
+            <select id="abortPolicy" name="abortPolicy">
+                <option value="1">AbortPolicy</option>
+                <option value="2">CallerRunsPolicy</option>
+                <option value="3">DiscardPolicy</option>
+                <option value="4">DiscardOldestPolicy</option>
+            </select><br>
             <button type="button" onclick="updateConfig()">确认修改</button>
         </form>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         var loader = document.querySelector('.loader');
         var tbody = document.querySelector('#threadPoolList tbody');
 
@@ -174,7 +194,7 @@
         var autoRefreshBtn = document.getElementById('autoRefreshBtn');
         var stopAutoRefreshBtn = document.getElementById('stopAutoRefreshBtn');
 
-        autoRefreshBtn.addEventListener('click', function() {
+        autoRefreshBtn.addEventListener('click', function () {
             // 开始自动刷新
             if (!autoRefreshInterval) {
                 autoRefreshInterval = setInterval(fetchThreadPoolList, 3000);
@@ -183,7 +203,7 @@
             }
         });
 
-        stopAutoRefreshBtn.addEventListener('click', function() {
+        stopAutoRefreshBtn.addEventListener('click', function () {
             // 停止自动刷新
             if (autoRefreshInterval) {
                 clearInterval(autoRefreshInterval);
@@ -196,20 +216,23 @@
         function fetchThreadPoolList() {
             loader.style.display = 'block';
             var xhr = new XMLHttpRequest();
+            let policies = ["", "AbortPolicy", "CallerRunsPolicy", "DiscardPolicy", "DiscardOldestPolicy"];
             xhr.open('GET', 'http://localhost:8089/api/v1/dynamic/thread/pool/query_thread_pool_list', true);
-            xhr.onload = function() {
+            xhr.onload = function () {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     var response = JSON.parse(xhr.responseText);
                     if (response.code === "0000" && Array.isArray(response.data)) {
                         var html = '';
-                        response.data.forEach(function(item) {
+                        response.data.forEach(function (item) {
                             html += '<tr>';
                             html += '<td>' + item.appName + '</td>';
                             html += '<td>' + item.threadPoolName + '</td>';
                             html += '<td>' + item.corePoolSize + '</td>';
                             html += '<td>' + item.maximumPoolSize + '</td>';
+                            html += '<td>' + item.keepLiveTime + '</td>';
                             html += '<td>' + item.activeCount + '</td>';
                             html += '<td>' + item.poolSize + '</td>';
+                            html += '<td>' + policies[item.abortPolicy] + '</td>';
                             html += '<td>' + item.queueType + '</td>';
                             html += '<td>' + item.queueSize + '</td>';
                             html += '<td>' + item.remainingCapacity + '</td>';
@@ -225,7 +248,7 @@
                 }
                 loader.style.display = 'none';
             };
-            xhr.onerror = function() {
+            xhr.onerror = function () {
                 console.error('The request failed!');
                 loader.style.display = 'none';
             };
@@ -240,12 +263,12 @@
     var span = document.getElementsByClassName("close")[0];
 
     // 点击 <span> (x), 关闭模态框
-    span.onclick = function() {
+    span.onclick = function () {
         modal.style.display = "none";
     }
 
     // 点击模态框外的区域, 关闭模态框
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         if (event.target == modal) {
             modal.style.display = "none";
         }
@@ -256,7 +279,7 @@
         // 发起请求获取线程池配置
         var xhr = new XMLHttpRequest();
         xhr.open('GET', 'http://localhost:8089/api/v1/dynamic/thread/pool/query_thread_pool_config?appName=' + appName + '&threadPoolName=' + threadPoolName, true);
-        xhr.onload = function() {
+        xhr.onload = function () {
             if (xhr.status >= 200 && xhr.status < 300) {
                 var response = JSON.parse(xhr.responseText);
                 if (response.code === "0000" && response.data) {
@@ -267,6 +290,8 @@
                     document.getElementById('maximumPoolSize').value = response.data.maximumPoolSize;
                     document.getElementById('maximumPoolSize').value = response.data.maximumPoolSize;
                     document.getElementById('maximumPoolSize').value = response.data.maximumPoolSize;
+                    document.getElementById('keepLiveTime').value = response.data.keepLiveTime;
+                    document.getElementById('abortPolicy').value = response.data.abortPolicy;
                     // ... (填充其他只读字段) ...
                     modal.style.display = "block";
                 } else {
@@ -276,7 +301,7 @@
                 console.error('The request failed!');
             }
         };
-        xhr.onerror = function() {
+        xhr.onerror = function () {
             console.error('The request failed!');
         };
         xhr.send();
@@ -288,11 +313,13 @@
         var threadPoolName = document.getElementById('threadPoolName').value;
         var corePoolSize = document.getElementById('corePoolSize').value;
         var maximumPoolSize = document.getElementById('maximumPoolSize').value;
+        var keepLiveTime = document.getElementById('keepLiveTime').value;
+        var abortPolicy = document.getElementById('abortPolicy').value;
 
         var xhr = new XMLHttpRequest();
         xhr.open('POST', 'http://localhost:8089/api/v1/dynamic/thread/pool/update_thread_pool_config', true);
         xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.onload = function() {
+        xhr.onload = function () {
             if (xhr.status >= 200 && xhr.status < 300) {
                 var response = JSON.parse(xhr.responseText);
                 if (response.code === "0000") {
@@ -306,14 +333,16 @@
                 alert('Failed to update configuration!');
             }
         };
-        xhr.onerror = function() {
+        xhr.onerror = function () {
             alert('Failed to update configuration!');
         };
         xhr.send(JSON.stringify({
             appName: appName,
             threadPoolName: threadPoolName,
             corePoolSize: parseInt(corePoolSize, 10),
-            maximumPoolSize: parseInt(maximumPoolSize, 10)
+            maximumPoolSize: parseInt(maximumPoolSize, 10),
+            keepLiveTime: parseInt(keepLiveTime, 60),
+            abortPolicy: parseInt(abortPolicy, 1)
         }));
     }
 

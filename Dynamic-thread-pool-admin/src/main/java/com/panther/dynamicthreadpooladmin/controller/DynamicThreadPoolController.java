@@ -61,7 +61,7 @@ public class DynamicThreadPoolController {
     public Response<ThreadPoolConfigEntity> queryThreadPoolConfig(@RequestParam String appName, @RequestParam String threadPoolName) {
         try {
             String cacheKey =
-                    RegistryEnumVO.THREAD_POOL_CONFIG_LIST_KEY.getKey() + "_" + appName + "_" + threadPoolName;
+                    RegistryEnumVO.THREAD_POOL_CONFIG_PARAMETER_LIST_KEY.getKey() + "_" + appName + "_" + threadPoolName;
             ThreadPoolConfigEntity threadPoolConfigEntity =
                     redissonClient.<ThreadPoolConfigEntity>getBucket(cacheKey).get();
             return Response.<ThreadPoolConfigEntity>builder()

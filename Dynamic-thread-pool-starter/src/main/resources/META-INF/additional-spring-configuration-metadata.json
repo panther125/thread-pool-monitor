@@ -1,0 +1,37 @@
+{
+  "groups": [
+    {
+      "name": "dynamic-thread-pool",
+      "sourceType": "com.panther.dynamicthreadpoolstarter.config.DynamicThreadPoolAutoProperties",
+      "type": "com.panther.dynamicthreadpoolstarter.config.DynamicThreadPoolAutoProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "enable",
+      "sourceType": "com.panther.dynamicthreadpoolstarter.config.DynamicThreadPoolAutoProperties",
+      "type": "java.lang.Boolean",
+      "description": "是否开启线程监控."
+    },
+    {
+      "name": "host",
+      "sourceType": "com.panther.dynamicthreadpoolstarter.config.DynamicThreadPoolAutoProperties",
+      "type": "java.lang.String",
+      "defaultValue": "127.0.0.1",
+      "description": "连接主机."
+    },
+    {
+      "name": "port",
+      "sourceType": "com.panther.dynamicthreadpoolstarter.config.DynamicThreadPoolAutoProperties",
+      "type": "java.lang.String",
+      "defaultValue": "6379",
+      "description": "redis端口号."
+    },
+    {
+      "name": "password",
+      "sourceType": "com.panther.dynamicthreadpoolstarter.config.DynamicThreadPoolAutoProperties",
+      "type": "java.lang.String",
+      "description": "redis密码."
+    }
+  ]
+}

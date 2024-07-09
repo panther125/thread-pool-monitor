@@ -1,16 +1,12 @@
 package com.panther.dynamicthreadpoolstarter.domain;
 
 import com.alibaba.fastjson.JSON;
-import com.panther.dynamicthreadpoolstarter.domain.model.ThreadPoolConfigEntityVO.ThreadPoolConfigEntityVO;
 import com.panther.dynamicthreadpoolstarter.domain.model.entity.ThreadPoolConfigEntity;
 import com.panther.dynamicthreadpoolstarter.domain.model.valobj.rejectHandlerPolicyEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -44,7 +40,7 @@ public class DynamicThreadPoolService implements IDynamicThreadPoolService {
             threadPoolConfigVO.setCorePoolSize(threadPoolExecutor.getCorePoolSize());
             threadPoolConfigVO.setMaximumPoolSize(threadPoolExecutor.getMaximumPoolSize());
             threadPoolConfigVO.setKeepLiveTime((int) threadPoolExecutor.getKeepAliveTime(TimeUnit.SECONDS));
-            //threadPoolConfigVO.setAbortPolicy(threadPoolExecutor.getRejectedExecutionHandler());
+            threadPoolConfigVO.setAbortPolicy(Optional.ofNullable(rejectHandlerPolicyEnum.getRejectPolicyByPolicy(threadPoolExecutor.getRejectedExecutionHandler())).orElse(rejectHandlerPolicyEnum.ABORT_POLICY).getType());
             threadPoolConfigVO.setActiveCount(threadPoolExecutor.getActiveCount());
             threadPoolConfigVO.setPoolSize(threadPoolExecutor.getPoolSize());
             threadPoolConfigVO.setQueueType(threadPoolExecutor.getQueue().getClass().getSimpleName());
@@ -64,6 +60,8 @@ public class DynamicThreadPoolService implements IDynamicThreadPoolService {
         ThreadPoolConfigEntity threadPoolConfigVO = new ThreadPoolConfigEntity(applicationName, threadPoolName);
         threadPoolConfigVO.setCorePoolSize(threadPoolExecutor.getCorePoolSize());
         threadPoolConfigVO.setMaximumPoolSize(threadPoolExecutor.getMaximumPoolSize());
+        threadPoolConfigVO.setKeepLiveTime((int) threadPoolExecutor.getKeepAliveTime(TimeUnit.SECONDS));
+        threadPoolConfigVO.setAbortPolicy(Optional.ofNullable(rejectHandlerPolicyEnum.getRejectPolicyByPolicy(threadPoolExecutor.getRejectedExecutionHandler())).orElse(rejectHandlerPolicyEnum.ABORT_POLICY).getType());
         threadPoolConfigVO.setActiveCount(threadPoolExecutor.getActiveCount());
         threadPoolConfigVO.setPoolSize(threadPoolExecutor.getPoolSize());
         threadPoolConfigVO.setQueueType(threadPoolExecutor.getQueue().getClass().getSimpleName());
